@@ -1,0 +1,20 @@
+{% extends 'maestra.html' %}
+
+{% block title %} Habitats {% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;">
+
+{% for habitat in habitats %}
+    <a href="{{ url_for('animalesHabitat', habitat_id=habitat.id_habitat) }}" style="text-decoration: none; color: inherit;">
+        <div class="card" style="width: 18rem;">
+            <img src="{{ url_for('imagen_habitat', id=habitat.id_habitat) }}" class="card-img-top" alt="{{ habitat.nombre_habitat }}">
+            <div class="card-body">
+                <p class="card-text">{{ habitat.nombre_habitat }}</p>
+            </div>
+        </div>
+    </a>
+{% endfor %}
+
+</div>
+{% endblock %}

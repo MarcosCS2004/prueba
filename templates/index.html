@@ -1,0 +1,393 @@
+{% extends 'maestra.html' %}
+
+{% block title%} CRUD animales {% endblock%}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col md-12">
+            <div class="jumbotron p-3">
+                <h2 class="fw-bold">Lista animales
+                    <button type="button" class="btn btn-success float-right" data-toggle="modal"
+                        data-target="#modalAniadirAnimal" style="margin: 1%;">Añadir animales</button>
+                    <button type="button" class="btn btn-success float-right" data-toggle="modal"
+                        data-target="#modalAniadirEspecie" style="margin: 1%;">Añadir especie</button>
+                    <button type="button" class="btn btn-success float-right" data-toggle="modal"
+                        data-target="#modalAniadirHabitat" style="margin: 1%;">Añadir habitat</button>
+                </h2>
+
+                {% with messages = get_flashed_messages() %}
+
+                {% if messages %}
+
+                {% for message in messages %}
+
+                <div class="alert alert-success alert-dismissable" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="close">
+                        <span aria-hidden="true">x</span>
+                    </button>
+                    {{message}}
+                </div>
+
+                {% endfor %}
+
+                {% endif %}
+
+                {% endwith%}
+
+                <table class="table table-hover table-dark">
+
+                    <tr>
+                        <th class="text-center">ID</th>
+                        <th class="text-center">Nombre</th>
+                        <th class="text-center">Fecha Nacimiento</th>
+                        <th class="text-center">Edad</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+
+                    {% for animal in animales %}
+
+                    <tr>
+                        <td class="text-center">{{ animal.id_animal }}</td>
+                        <td class="text-center">{{ animal.nombre_animal }}</td>
+                        <td class="text-center">{{ animal.fecha_nacimiento }}</td>
+                        <td class="text-center">{{ animal.edad }}</td>
+                        <td class="d-flex justify-content-around">
+                            <a href="/editar/{{animal.id_animal}}" class="btn btn-warning btn-xs" data-toggle="modal"
+                                data-target="#modalEditar{{animal.id_animal}}">Editar</a>
+                            <a href="/mostrarAnimal/{{animal.id_animal}}" class="btn btn-success btn-xs">Mostrar
+                                Información</a>
+                            <a href="/verImagen/{{animal.id_animal}}" class="btn btn-primary" btn-xs>Ver imagen</a>
+                            <a href="/eliminar/{{animal.id_animal}}" class="btn btn-danger btn-xs"
+                                onclick="return confirm('¿Estas seguro?')">Eliminar</a>
+                        </td>
+                    </tr>
+
+                    <!--Modal para poder editar al animal correspondiente-->
+                    <div id="modalEditar{{animal.id_animal}}" class="modal fade" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title fw-bold">Editar animal : {{ animal.nombre_animal }}</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="formEditAnimal"  action="{{url_for('editar', id=animal.id_animal)}}" method="POST" 
+                                        enctype="multipart/form-data"  onsubmit="return validarEditAnimal(event)">
+
+                                        <div class="form-group">
+                                            <label>Nombre:</label>
+                                            <input type="hidden" name="id" value="{{animal.id_animal}}">
+                                            <input type="text" class="form-control" name="nombre"
+                                                value="{{animal.nombre_animal}}" id="nombreEdit">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Fecha Nacimiento:</label>
+                                            <input type="date" class="form-control" name="fecha_nacimiento"
+                                                value="{{animal.fecha_nacimiento}}" id="fechaEdit">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Edad:</label>
+                                            <input type="text" class="form-control" name="edad" value="{{animal.edad}}" id="edadEdit">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Especie:</label>
+                                            <select class="form-control" name="id_especie">
+                                                {% for especie in especies %}
+                                                <option value="{{ especie.id_especie }}" {% if
+                                                    especie.id_especie==animal.id_especie %}selected{% endif %}>{{
+                                                    especie.nombre_especie }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Hábitat:</label>
+                                            <select class="form-control" name="id_habitat">
+                                                {% for habitat in habitats %}
+                                                <option value="{{ habitat.id_habitat }}" {% if
+                                                    habitat.id_habitat==animal.id_habitat %}selected{% endif %}>{{
+                                                    habitat.nombre_habitat }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Imagen:</label>
+                                            <input type="file" name="imagen" accept="image/*" id="imagenEdit">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <button class="btn btn-primary" type="submit" id="submitEditAnimal">Editar</button>
+                                        </div>
+
+                                    </form>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <!--Modal para poder añadir animales-->
+            <div id="modalAniadirAnimal" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Añadir animal</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formAnimal" action="{{url_for('insertarAnimal')}}" method="POST" enctype="multipart/form-data">
+
+                                <div class="form-group">
+                                    <label>Nombre:</label>
+                                    <input type="text" class="form-control" name="nombre" required="1" id="nombre_animal">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Fecha Nacimiento:</label>
+                                    <input type="date" class="form-control" name="fecha_nacimiento" required="1" id="fecha_animal">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Edad:</label>
+                                    <input type="text" class="form-control" name="edad" required="1" id="edad">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Especie:</label>
+                                    <select class="form-control" name="id_especie" required="1">
+                                        {% for especie in especies %}
+                                        <option value="{{ especie.id_especie }}">{{ especie.nombre_especie }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Hábitat:</label>
+                                    <select class="form-control" name="id_habitat" required="1">
+                                        {% for habitat in habitats %}
+                                        <option value="{{ habitat.id_habitat }}">{{ habitat.nombre_habitat }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Imagen:</label>
+                                    <input type="file" name="imagen" accept="image/*" required="1" id="imagen_animal">
+                                </div>
+
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="submit" id="submitAnimal">Añadir animal</button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="modalAniadirEspecie" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Añadir especie</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formEspecie" action="{{url_for('insertarEspecie')}}" method="POST" enctype="multipart/form-data" >
+                                <div class="form-group">
+                                    <label>Nombre:</label>
+                                    <input type="text" class="form-control" name="nombre" id="nombre_especie" required="1">
+                                </div>
+                        
+                                <div class="form-group">
+                                    <label>Descripción:</label>
+                                    <input type="text" name="descripcion" class="form-control" id="descripcion_especie" required="1">
+                                </div>
+                        
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="submit" id="submitEspecie">Añadir especie</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="modalAniadirHabitat" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Añadir habitat</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form id="formHabitat" action="{{url_for('insertarHabitat')}}" method="POST" enctype="multipart/form-data" id="nombre_habitat">
+
+                                <div class="form-group">
+                                    <label>Nombre:</label>
+                                    <input type="text" class="form-control" name="nombre" required="1" id="nombre_habitat">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Imagen:</label>
+                                    <input type="file" name="imagen" accept="image/*" required="1" id="imagen_habitat">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <button class="btn btn-primary" type="submit" id="submitHabitat">Añadir habitat</button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const botonEspecie = document.getElementById("submitEspecie");
+    const botonHabitat = document.getElementById("submitHabitat");
+    const botonAnimal = document.getElementById("submitAnimal");
+    const botonEditAnimal = document.getElementById("submitEditAnimal");
+
+    botonEditAnimal.addEventListener("click", function(event) {
+        event.preventDefault();
+        validarEditAnimal();
+    });
+
+    botonEspecie.addEventListener("click", validarEspecie);
+    botonHabitat.addEventListener("click", validarHabitat);
+    botonAnimal.addEventListener("click", validarAnimal);
+    
+
+    function validarNombreSinNumeros(nombre) {
+    return !/.*\d.*/.test(nombre);
+}
+
+
+function validarCampoNoVacio(campo, mensaje) {
+    if (campo === "") {
+        alert(mensaje);
+        return false;
+    }
+    return true;
+}
+
+
+function validarNumeroMayorQueCero(numero, mensaje) {
+    if (isNaN(numero) || numero <= 0) {
+        alert(mensaje);
+        return false;
+    }
+    return true;
+}
+
+
+function validarExtensionImagen(imagen, mensaje) {
+    var extensions = /(\.jpg|\.jpeg|\.png)$/i;
+    if (!extensions.exec(imagen)) {
+        alert(mensaje);
+        return false;
+    }
+    return true;
+}
+
+function validarEspecie(event) {
+    event.preventDefault();
+
+    var nombreEspecie = document.getElementById("nombre_especie").value;
+    var descripcionEspecie = document.getElementById("descripcion_especie").value;
+
+    if (!validarNombreSinNumeros(nombreEspecie)) {
+        alert("El nombre de la especie no puede contener números.");
+        return false;
+    }
+
+    if (!validarCampoNoVacio(nombreEspecie, "Por favor, ingresa el nombre de la especie.") ||
+        !validarCampoNoVacio(descripcionEspecie, "Por favor, ingresa la descripción de la especie.")) {
+        return false;
+    }
+
+    document.getElementById("formEspecie").submit();
+}
+
+
+function validarHabitat(event) {
+    event.preventDefault();
+
+    var nombreHabitat = document.getElementById("nombre_habitat").value;
+    var imagenHabitat = document.getElementById("imagen_habitat").value;
+
+    if (!validarNombreSinNumeros(nombreHabitat)) {
+        alert("El nombre del hábitat no puede contener números.");
+        return false;
+    }
+
+    if (!validarCampoNoVacio(nombreHabitat, "Por favor, ingresa el nombre del hábitat.") ||
+        !validarExtensionImagen(imagenHabitat, "Por favor, selecciona un archivo de imagen con extensiones jpg, jpeg o png.")) {
+        return false;
+    }
+
+    document.getElementById("formHabitat").submit();
+}
+
+
+function validarAnimal(event) {    
+    event.preventDefault();
+
+    var nombreAnimal = document.getElementById("nombre_animal").value;
+    var fechaAnimal = document.getElementById("fecha_animal").value;
+    var edad = document.getElementById("edad").value;
+    var imagenAnimal = document.getElementById("imagen_animal").value;
+
+    if (!validarNombreSinNumeros(nombreAnimal)) {
+        alert("El nombre del animal no puede contener números.");
+        return false;
+    }
+
+    if (!validarCampoNoVacio(nombreAnimal, "Por favor, ingresa el nombre del animal.") ||
+        !validarCampoNoVacio(fechaAnimal, "Por favor, ingresa la fecha de nacimiento del animal.") ||
+        !validarCampoNoVacio(edad, "Por favor, ingresa la edad.") ||
+        !validarNumeroMayorQueCero(edad, "Por favor, ingresa un número mayor que 0 en el campo correspondiente.") ||
+        !validarExtensionImagen(imagenAnimal, "Por favor, selecciona un archivo de imagen con extensiones jpg, jpeg o png.")) {
+        return false;
+    }
+
+    document.getElementById("formAnimal").submit();
+}
+
+
+function validarEditAnimal(event) {
+    event.preventDefault();
+    
+
+    var nombreEditAnimal = document.getElementById("nombreEdit").value;
+    var fechaEditAnimal = document.getElementById("fechaEdit").value;
+    var edadEdit = document.getElementById("edadEdit").value;
+    var imagenEditAnimal = document.getElementById("imagenEdit").value;
+
+    if (!validarNombreSinNumeros(nombreEditAnimal)) {
+        alert("El nombre del animal no puede contener números.");
+        return false;
+    }
+
+    if (!validarCampoNoVacio(nombreEditAnimal, "Por favor, ingresa el nombre del animal.") ||
+        !validarCampoNoVacio(fechaEditAnimal, "Por favor, ingresa la fecha de nacimiento del animal.") ||
+        !validarCampoNoVacio(edadEdit, "Por favor, ingresa la edad.") ||
+        !validarNumeroMayorQueCero(edadEdit, "Por favor, ingresa un número mayor que 0 en el campo correspondiente.") ||
+        !validarExtensionImagen(imagenEditAnimal, "Por favor, selecciona un archivo de imagen con extensiones jpg, jpeg o png.")) {
+        return false;
+    }
+
+    document.getElementById("formEditAnimal").submit();
+
+}
+</script>
+
+{% endblock %}
